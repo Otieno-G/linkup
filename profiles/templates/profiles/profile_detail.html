@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ profile.user.username }} | LinkUp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap & Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-light">
+
+    <!-- Top Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'profile_detail' request.user.username %}">LinkUp</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'post_list' user.username %}"><i class="fas fa-stream"></i> Feed</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'explore_posts' %}"><i class="fas fa-compass"></i> Explore</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'create_post' %}"><i class="fas fa-plus-circle"></i> New Post</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'edit_profile' %}"><i class="fas fa-user-edit"></i> Edit Profile</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Profile Banner -->
+    <div class="container-fluid bg-primary text-white p-4">
+        <div class="d-flex align-items-center">
+            <img src="{{ profile.image.url }}" alt="Avatar" class="rounded-circle border border-white me-3" style="width: 100px; height: 100px; object-fit: cover;">
+            <div>
+                <h2 class="mb-0">{{ profile.user.username }}</h2>
+                <p class="mb-0">{{ profile.location|default:"Location not set" }}</p>
+                <small>{{ profile.bio|default:"No bio available." }}</small>
+                <div class="mt-2">
+                    {% if request.user != profile.user %}
+                        <form method="POST" action="{% url 'follow_user' profile.user.username %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-light">
+                                <i class="fas fa-user-plus"></i> Follow
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resume Layout -->
+    <div class="container bg-white p-4 mt-3 rounded shadow-sm">
+        <h4><i class="fas fa-briefcase"></i> Professional Summary</h4>
+        <p><strong>Job Title:</strong> {{ profile.job_title|default:"Not set" }}</p>
+        <p><strong>Education:</strong> {{ profile.education|default:"Not listed" }}</p>
+        <p><strong>Website:</strong>
+            {% if profile.website %}
+                <a href="{{ profile.website }}" target="_blank">{{ profile.website }}</a>
+            {% else %}
+                Not provided
+            {% endif %}
+        </p>
+        <p><strong>Contact:</strong> {{ profile.contact|default:"Not shared" }}</p>
+    </div>
+
+    <!-- Skills Section -->
+    <div class="container bg-white p-4 mt-3 rounded shadow-sm">
+        <h4><i class="fas fa-tools"></i> Skills</h4>
+        {% if profile.skills %}
+            <div class="d-flex flex-wrap gap-2">
+                {% for skill in profile.skills.split(',') %}
+                    <span class="badge bg-secondary">{{ skill|trim }}</span>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">No skills listed.</p>
+        {% endif %}
+    </div>
+
+    <!-- Endorsements Section -->
+    <div class="container bg-white p-4 mt-3 rounded shadow-sm">
+        <h4><i class="fas fa-thumbs-up"></i> Endorsements</h4>
+        {% if profile.endorsement_set.exists %}
+            {% for endorsement in profile.endorsement_set.all %}
+                <div class="border-bottom py-2">
+                    <strong>{{ endorsement.endorser.user.username }}</strong> endorsed <em>{{ endorsement.skill }}</em>
+                    <br><small class="text-muted">{{ endorsement.created_at|date:"M d, Y" }}</small>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">No endorsements yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Stats Section -->
+    <div class="container bg-white p-3 border-bottom mt-3">
+        <div class="row text-center">
+            <div class="col">
+                <strong>{{ posts.count }}</strong><br>
+                <small>Posts</small>
+            </div>
+            <div class="col">
+                <strong>{{ total_likes }}</strong><br>
+                <small>Likes Received</small>
+            </div>
+            <div class="col">
+                <strong>{{ total_comments }}</strong><br>
+                <small>Comments Made</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Feed -->
+    <div class="container mt-4">
+        <h4 class="mb-3"><i class="fas fa-stream"></i> Recent Posts</h4>
+        {% for post in posts %}
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body">
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" class="img-fluid rounded mb-2" alt="Post Image">
+                    {% endif %}
+                    <p>{{ post.content }}</p>
+                    <small class="text-muted">
+                        <i class="fas fa-clock"></i> {{ post.created_at|date:"M d, Y H:i" }} |
+                        <i class="fas fa-heart"></i> {{ post.like_set.count }} likes |
+                        <i class="fas fa-comments"></i> {{ post.comment_set.count }} comments
+                    </small>
+                </div>
+            </div>
+        {% empty %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i> No posts yet.
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center mt-5 mb-3 text-muted">
+        <small>&copy; 2025 LinkUp by Genesis</small>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

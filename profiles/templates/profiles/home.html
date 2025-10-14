@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LinkUp</title>
+</head>
+<body>
+    <h1>Welcome to LinkUp</h1>
+    <h2>User Profiles</h2>
+    {% for profile in profiles %}
+
+    
+        <div>
+            <h3>{{ profile.user.username }}</h3>
+            <p>{{ profile.bio }}</p>
+        </div>
+    {% endfor %}
+
+   <h2>Posts</h2>
+    {% for post in posts %}
+        <div>
+            <strong>{{ post.user.username }}</strong> 
+            <p>{{ post.content }}</p>
+            <small>{{ post.created_at }}</small>
+        </div>
+    {% endfor %}
+</body>
+</html>
