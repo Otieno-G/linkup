@@ -1,0 +1,39 @@
+{% load static %}
+{% load profiles_extras %}
+
+{% if request.user.is_authenticated and suggested_users %}
+<div class="card shadow-sm mb-4 border-0">
+    <div class="card-header bg-white border-bottom text-primary fw-bold">
+        <i class="fas fa-user-friends me-2"></i> People You May Know
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for s_user in suggested_users %}
+        <li class="list-group-item d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                {# Profile Image #}
+                <img src="{% if s_user.userprofile.image %}{{ s_user.userprofile.image.url }}{% else %}{% static 'profiles/images/default.jpg' %}{% endif %}"
+                     class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;" alt="{{ s_user.username }}'s avatar">
+                
+                {# User Info #}
+                <div>
+                    <a href="{% url 'profiles:profile_detail' s_user.username %}" class="text-dark fw-bold text-decoration-none">{{ s_user.username }}</a>
+                    <p class="text-muted mb-0 small">{{ s_user.userprofile.job_title|default:"LinkUp Member" }}</p>
+                </div>
+            </div>
+            
+            {# Follow Button #}
+            {# Note: This button links to a view that expects a POST, so we wrap it in a form. #}
+            <form method="POST" action="{% url 'profiles:follow_user' s_user.username %}" class="ms-auto">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus"></i> Follow
+                </button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    <div class="card-footer bg-white text-center">
+        <a href="{% url 'profiles:search_users' %}" class="small text-primary">See all recommendations <i class="fas fa-arrow-right"></i></a>
+    </div>
+</div>
+{% endif %}

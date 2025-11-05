@@ -1,27 +1,167 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>LinkUp</title>
-</head>
-<body>
-    <h1>Welcome to LinkUp</h1>
-    <h2>User Profiles</h2>
-    {% for profile in profiles %}
+{% extends 'profiles/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
 
-    
-        <div>
-            <h3>{{ profile.user.username }}</h3>
-            <p>{{ profile.bio }}</p>
-        </div>
-    {% endfor %}
+{% block title %}Home Feed | LinkUp{% endblock %}
 
-   <h2>Posts</h2>
-    {% for post in posts %}
-        <div>
-            <strong>{{ post.user.username }}</strong> 
-            <p>{{ post.content }}</p>
-            <small>{{ post.created_at }}</small>
+{% block content %}
+<div class="container">
+    <div class="row">
+
+        {# --------------------------------------------- #}
+        {# 1. LEFT COLUMN: POST CREATION AND MAIN FEED #}
+        {# --------------------------------------------- #}
+        <div class="col-lg-8">
+            <h2 class="mb-4 text-primary"><i class="fas fa-home me-2"></i> Your Feed</h2>
+
+            {# ========================================================= #}
+            {# CREATE POST FORM #}
+            {# ========================================================= #}
+            {% if user.is_authenticated %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 text-dark"><i class="fas fa-pen me-2"></i> What's on your mind?</h5>
+                    </div>
+                    <form method="POST" action="{% url 'profiles:create_post' %}" enctype="multipart/form-data" class="card-body">
+                        {% csrf_token %}
+                        
+                        {# Non-field errors for the post form #}
+                        {% if post_form.non_field_errors %}
+                            <div class="alert alert-danger">{{ post_form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ post_form.content.id_for_label }}" class="form-label visually-hidden">{{ post_form.content.label }}</label>
+                            {# Applied widget_tweaks styling and attributes #}
+                            {{ post_form.content|add_class:"form-control"|attr:"rows:3"|attr:"placeholder:Share an update, idea, or image..." }}
+                            {% if post_form.content.errors %}
+                                <div class="text-danger small">{{ post_form.content.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ post_form.image.label_tag }}
+                            {# Applied widget_tweaks styling #}
+                            {{ post_form.image|add_class:"form-control" }}
+                            {% if post_form.image.errors %}
+                                <div class="text-danger small">{{ post_form.image.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Share Post
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-lock"></i> You must 
+                    <a href="{% url 'login' %}">log in</a> or <a href="{% url 'profiles:signup' %}">sign up</a> to create posts and see the full feed.
+                </div>
+            {% endif %}
+
+            {# ========================================================= #}
+            {# HOME FEED LOOP #}
+            {# ========================================================= #}
+            {% for post in posts %}
+                <div class="card mb-4 shadow-sm border-0">
+                    <div class="card-body">
+                        
+                        {# POST HEADER (Author and Date) #}
+                        <div class="d-flex align-items-center mb-2">
+                            {% with profile=post.user.userprofile %}
+                                {# ⭐ FIX APPLIED HERE: Added safety check for the profile existence #}
+                                {% if profile %}
+                                <img src="{% if profile.image %}{{ profile.image.url }}{% else %}{% static 'profiles/images/default_profile.png' %}{% endif %}" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;" alt="{{ post.user.username }}'s avatar">
+                                {% else %}
+                                {# FALLBACK: If the profile is missing, use a generic default image #}
+                                <img src="{% static 'profiles/images/default_profile.png' %}" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;" alt="Default avatar">
+                                {% endif %}
+                            {% endwith %}
+                            <div>
+                                <h5 class="card-title mb-0">
+                                    <a href="{% url 'profiles:profile_detail' post.user.username %}" class="text-primary text-decoration-none fw-bold">
+                                        {{ post.user.username }}
+                                    </a>
+                                </h5>
+                                <small class="text-muted">Posted on {{ post.created_at|date:"M d, Y H:i" }}</small>
+                            </div>
+                        </div>
+                        
+                        {# POST CONTENT #}
+                        <p class="card-text text-dark mt-2">{{ post.content|linebreaksbr }}</p>
+                        
+                        {% if post.image %}
+                            <img src="{{ post.image.url }}" class="img-fluid rounded mb-2" alt="Post image" style="max-height: 400px; object-fit: cover;">
+                        {% endif %}
+
+                        <hr class="my-2">
+                        
+                        {# ACTIONS (Like/Comment) #}
+                        <div class="d-flex justify-content-between align-items-center">
+                            
+                            {# LIKING ACTION: Must be a POST form #}
+                            {% if user.is_authenticated %}
+                                <div class="d-flex align-items-center">
+                                    <form method="POST" action="{% url 'profiles:toggle_like' post.id %}" class="d-inline me-3">
+                                        {% csrf_token %}
+                                        {# Uses the efficient post.is_liked attribute from the view #}
+                                        {% if post.is_liked %} 
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-heart"></i> Liked
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="far fa-heart"></i> Like
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                    <span class="text-muted small me-3">
+                                        <i class="fas fa-heart me-1"></i> **{{ post.likes.count }}** </span>
+
+                                    {# COMMENT ACTION #}
+                                    <a href="{% url 'profiles:post_detail' post.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-comment"></i> Comment (**{{ post.comments.count }}**)
+                                    </a>
+                                </div>
+                            {% else %}
+                                <span class="text-muted small me-3">
+                                    <i class="fas fa-heart me-1"></i> **{{ post.likes.count }}** likes
+                                </span>
+                                <a href="{% url 'login' %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-comment"></i> Comment
+                                </a>
+                            {% endif %}
+                            
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="alert alert-info text-center mt-5">
+                    <i class="fas fa-info-circle"></i> No posts yet. Start by following some users or share your own thoughts!
+                </div>
+            {% endfor %}
+            
+            {# NOTE: Add pagination logic here if using it (Paginator class is in your home view) #}
+
         </div>
-    {% endfor %}
-</body>
-</html>
+
+        {# --------------------------------------------- #}
+        {# 2. RIGHT COLUMN: WIDGETS/SUGGESTIONS (Sidebar) #}
+        {# --------------------------------------------- #}
+        <div class="col-lg-4 d-none d-lg-block">
+            <h4 class="mb-4 text-primary"><i class="fas fa-search-plus me-2"></i> Discovery</h4>
+            
+            {# ✅ PYMK WIDGET INTEGRATION (Requires _suggestions.html to exist) #}
+            {% include 'profiles/_suggestions.html' %} 
+            
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Explore More</h6>
+                    <p class="small mb-0">Check out the <a href="{% url 'profiles:explore_posts' %}" class="text-primary fw-bold">Explore</a> page to see the latest global activity!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,102 +1,126 @@
 {% extends 'profiles/base.html' %}
 {% load static %}
+{% load widget_tweaks %}
+
 {% block title %}{{ profile.user.username }}'s Posts | LinkUp{% endblock %}
 
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ profile.user.username }}'s Posts | LinkUp</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+<div class="container mt-5">
+    <h2 class="mb-4 text-center text-primary"><i class="fas fa-stream me-2"></i>{{ profile.user.username }}'s Posts</h2>
+    
+    <div class="text-center mb-4">
+        {# Link back to the user's main profile page #}
+        <a href="{% url 'profiles:profile_detail' profile.user.username %}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-user"></i> View Profile Summary
+        </a>
+        {# Link to post creation is only relevant if it's the current user's page #}
+        {% if request.user == profile.user %}
+        <a href="{% url 'profiles:create_post' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Create New Post
+        </a>
+        {% endif %}
+    </div>
 
-    <div class="container mt-5">
-        <h2 class="mb-4 text-center">{{ profile.user.username }}'s Posts</h2>
-
-        {% if posts %}
-            <div class="row">
+    {% if posts %}
+        <div class="row">
+            {# Centering posts better on large screens #}
+            <div class="col-lg-8 offset-lg-2"> 
                 {% for post in posts %}
-                    <div class="col-md-8 offset-md-2 mb-4">
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <p class="card-text">{{ post.content }}</p>
-                                {% if post.image %}
-    <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid rounded mb-2">
-     {% endif %}
+                    <div class="card shadow-sm border-0 rounded-3 mb-4">
+                        <div class="card-body">
+                            
+                            {# POST CONTENT AND IMAGE #}
+                            <p class="card-text text-dark">{{ post.content|linebreaksbr }}</p>
+                            
+                            {% if post.image %}
+                                <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid rounded mb-3" style="max-height: 400px; object-fit: cover; width: 100%;">
+                            {% endif %}
 
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock"></i> {{ post.created_at|date:"M d, Y H:i" }}
-                                    </small>
-                                    <a href="{% url 'profile_detail' profile.user.username %}" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-user"></i> View Profile
-                                    </a>
+                            <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> Posted {{ post.created_at|date:"M d, Y H:i" }}
+                                </small>
+                                
+                                <div class="d-flex align-items-center">
+                                    {# LIKING BUTTON (Conditional and Form-based) #}
+                                    {% if user.is_authenticated %}
+                                        <form method="POST" action="{% url 'profiles:toggle_like' post.id %}" class="me-3">
+                                            {% csrf_token %}
+                                            {# FIX APPLIED HERE: Using the efficient post.is_liked attribute #}
+                                            {% if post.is_liked %}
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-heart"></i> Unlike
+                                                </button>
+                                            {% else %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="far fa-heart"></i> Like
+                                                </button>
+                                            {% endif %}
+                                        </form>
+                                    {% endif %}
+                                    
+                                    {# LIKE & COMMENT COUNT DISPLAY #}
+                                    <span class="text-muted small">
+                                        <i class="fas fa-heart me-1"></i> {{ post.like_set.count }} 
+                                        | <i class="fas fa-comment me-1"></i> {{ post.comment_set.count }}
+                                    </span>
                                 </div>
                             </div>
+                            
+                            {# COMMENTS SECTION #}
+                            <div class="mt-4 border-top pt-3">
+                                <h6 class="text-secondary mb-3"><i class="fas fa-comments"></i> Comments ({{ post.comment_set.count }})</h6>
+                                
+                                {# Display existing comments #}
+                                <div class="comments-list">
+                                    {% for comment in post.comment_set.all %}
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-grow-1 border-start ps-3">
+                                                <a href="{% url 'profiles:profile_detail' comment.author.username %}" class="fw-bold text-dark text-decoration-none">
+                                                    {{ comment.author.username }}
+                                                </a>: {{ comment.content }}
+                                                <br>
+                                                <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <p class="text-muted small">No comments yet. Be the first!</p>
+                                    {% endfor %}
+                                </div>
+
+                                {# ADD COMMENT FORM #}
+                                {% if user.is_authenticated and comment_form %}
+                                    <form method="POST" action="{% url 'profiles:add_comment' post.id %}" class="d-flex mt-3">
+                                        {% csrf_token %}
+                                        
+                                        {% with WIDGET_CLASS="form-control form-control-sm me-2" %}
+                                            {# Note: Using Textarea for comment content is usually better for multi-line support #}
+                                            {{ comment_form.content|add_class:WIDGET_CLASS|attr:"placeholder:Write a comment..." }}
+                                        {% endwith %}
+                                        
+                                        <button type="submit" class="btn btn-sm btn-primary flex-shrink-0">
+                                            <i class="fas fa-paper-plane"></i> Post
+                                        </button>
+                                    </form>
+                                    {# Display field errors if form was submitted but failed validation #}
+                                    {% if comment_form.content.errors %}
+                                        <div class="text-danger small mt-1">{{ comment_form.content.errors }}</div>
+                                    {% endif %}
+                                {% elif user.is_authenticated and not comment_form %}
+                                    <div class="alert alert-danger mt-3 small">Error: Comment form is not available.</div>
+                                {% endif %}
+                            </div>
+
                         </div>
                     </div>
                 {% endfor %}
             </div>
-        {% else %}
-            <div class="alert alert-info text-center">
-                <i class="fas fa-info-circle"></i> No posts yet.
-            </div>
-        {% endif %}
-
-        <div class="text-center mt-4">
-            <a href="{% url 'create_post' %}" class="btn btn-success">
-                <i class="fas fa-plus"></i> Create New Post
-            </a>
         </div>
-    </div>
-
-    <!-- Comments Section -->
-<div class="mt-3">
-    <h6><i class="fas fa-comments"></i> Comments</h6>
-    {% for comment in post.comment_set.all %}
-        <div class="border rounded p-2 mb-2 bg-white">
-            <strong>{{ comment.author.user.username }}</strong>:
-            {{ comment.content }}
-            <br>
-            <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+    {% else %}
+        <div class="alert alert-info text-center mt-5">
+            <i class="fas fa-info-circle"></i> {{ profile.user.username }} hasn't created any posts yet.
         </div>
-    {% empty %}
-        <p class="text-muted">No comments yet.</p>
-    {% endfor %}
-
-    <!-- Add Comment Form -->
-    <form method="POST" action="{% url 'add_comment' post.id %}">
-        {% csrf_token %}
-        {{ comment_form }}
-        <button type="submit" class="btn btn-sm btn-outline-primary mt-2">
-            <i class="fas fa-paper-plane"></i> Comment
-        </button>
-    </form>
-</div>
-
-<!-- Like Button -->
-<form method="POST" action="{% url 'toggle_like' post.id %}">
-    {% csrf_token %}
-    {% if user.is_authenticated %}
-        {% if post.like_set.filter(user=request.user.userprofile).exists %}
-            <button type="submit" class="btn btn-sm btn-danger">
-                <i class="fas fa-heart-broken"></i> Unlike
-            </button>
-        {% else %}
-            <button type="submit" class="btn btn-sm btn-outline-danger">
-                <i class="fas fa-heart"></i> Like
-            </button>
-        {% endif %}
-        <span class="ms-2 text-muted">{{ post.like_set.count }} likes</span>
     {% endif %}
-</form>
 
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
 {% endblock %}

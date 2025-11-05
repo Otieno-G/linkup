@@ -1,0 +1,66 @@
+{% extends 'profiles/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Sign Up | LinkUp{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-primary text-white rounded-top-4">
+                    <h4 class="mb-0 text-center"><i class="fas fa-user-plus me-2"></i> Create Your LinkUp Account</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        {# Display non-field errors (e.g., "Passwords don't match") #}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {# === CORRECTED FIELD LOOP (Static Placeholder Fix) === #}
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label text-dark fw-bold">{{ field.label }}</label>
+                            
+                            {% if field.field.widget.input_type != 'checkbox' %}
+                                {# FIXED: Using a safe, static placeholder value to avoid the syntax error #}
+                                {{ field|add_class:"form-control rounded-pill"|attr:"placeholder:Enter required value" }}
+                            {% else %}
+                                {{ field|add_class:"form-check-input" }}
+                            {% endif %}
+                            
+                            {# Display field errors #}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                            
+                            {# Display help text #}
+                            {% if field.help_text %}
+                                <div class="form-text text-muted">{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {# === END CORRECTED LOOP === #}
+
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold mt-3">
+                            <i class="fas fa-user-check me-2"></i> Sign Up
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3 small">
+                        Already have an account? <a href="{% url 'login' %}" class="text-primary fw-bold">Log In Here</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

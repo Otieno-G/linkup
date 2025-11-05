@@ -1,101 +1,86 @@
-# profiles/forms.py
-
 from django import forms
+from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from .models import Post, UserProfile, Comment, Endorsement
 
-
-# Import models from the same app
-from .models import Post, UserProfile, Comment, Endorsement # Added Endorsement
-
-# ===============================================
-# 1. Signup Form
-# ===============================================
-
+# -------------------------------
+# Signup Form
+# -------------------------------
 class SignupForm(UserCreationForm):
-    """
-    Extends the built-in UserCreationForm to make the email field required.
-    """
-    email = forms.EmailField(required=True, label="Email")
-    
-    class Meta(UserCreationForm.Meta):
-        fields = UserCreationForm.Meta.fields + ('email',)
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=30, required=False)
+    last_name = forms.CharField(max_length=30, required=False)
 
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
 
-# ===============================================
-# 2. Post Form
-# ===============================================
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email is already registered.")
+        return email
 
+# -------------------------------
+# Post Form
+# -------------------------------
 class PostForm(forms.ModelForm):
-    """
-    Form for creating or editing a Post.
-    """
     class Meta:
         model = Post
-        fields = ['content', 'image'] # Assumes 'image' field exists on Post
+        fields = ['content', 'image']
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write something...'}),
+            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Share something...'}),
         }
 
-# ===============================================
-# 3. Profile Form / EditProfileForm (Updated with all model fields)
-# ===============================================
-
+# -------------------------------
+# Profile Edit Form
+# -------------------------------
 class ProfileForm(forms.ModelForm):
-    """
-    Form for editing the full UserProfile details.
-    
-    NOTE: This form now includes all the new fields required to fix the FieldError.
-    """
     class Meta:
         model = UserProfile
-        fields = [
-            'profile_picture', # Renamed from 'image' to match your model
-            'bio', 
-            'location', 
-            'job_title', 
-            'website', 
-            'contact', 
-            'skills', 
-            'education'
-        ]
+        fields = ['bio', 'image', 'location', 'skills', 'job_title', 'website', 'contact', 'education']
+        widgets = {
+            'bio': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Tell us about yourself'}),
+            'skills': forms.TextInput(attrs={'placeholder': 'e.g. Python, Django, HTML'}),
+            'website': forms.URLInput(attrs={'placeholder': 'https://yourportfolio.com'}),
+            'contact': forms.TextInput(attrs={'placeholder': 'Email or phone'}),
+            'education': forms.Textarea(attrs={'rows': 2}),
+        }
 
-# ===============================================
-# 4. Comment Form
-# ===============================================
-
+# -------------------------------
+# Comment Form
+# -------------------------------
 class CommentForm(forms.ModelForm):
-    """
-    Form for creating a Comment.
-    """
     class Meta:
         model = Comment
         fields = ['content']
-
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Write a comment...'})
+            'content': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Write a comment...'}),
         }
 
-# ===============================================
-# 5. Search Form (Moved to top level to fix ImportError)
-# ===============================================
-
-class SearchForm(forms.Form):
-    query = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={
-        'placeholder': 'Search users...',
-        'class': 'form-control'
-    }))
-
-# ===============================================
-# 6. Endorsement Form (New Form for the new Model)
-# ===============================================
-
+# -------------------------------
+# Endorsement Form
+# -------------------------------
 class EndorsementForm(forms.ModelForm):
-    """
-    Form for adding an Endorsement.
-    """
     class Meta:
         model = Endorsement
         fields = ['skill']
-        widgets = {
-            'skill': forms.TextInput(attrs={'placeholder': 'E.g., Python, UI/UX Design'})
+        help_texts = {
+            'skill': 'Enter a skill listed on the user’s profile.',
         }
+        widgets = {
+            'skill': forms.TextInput(attrs={'placeholder': 'e.g. JavaScript'}),
+        }
+
+# -------------------------------
+# Search Form
+# -------------------------------
+class SearchForm(forms.Form):
+    query = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search users by name, bio, or skill...',
+        })
+    )

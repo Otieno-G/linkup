@@ -8,6 +8,7 @@
 
 /* Body and Typography */
 body {
+  /* Using Segoe UI as a clean, modern font */
   font-family: 'Segoe UI', sans-serif;
   background-color: var(--linkup-gray);
   color: #333;
@@ -15,6 +16,7 @@ body {
 
 /* Navbar */
 .navbar {
+  /* Subtle shadow for depth */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
@@ -24,17 +26,20 @@ body {
 }
 
 .navbar-nav .nav-link {
-  color: #fff !important;
+  /* Ensuring links are white against the primary blue background */
+  color: #fff !important; 
   margin-left: 10px;
   transition: background 0.3s ease;
 }
 
 .navbar-nav .nav-link:hover {
+  /* Hover effect for navigation links */
   background-color: rgba(255,255,255,0.2);
   border-radius: 5px;
 }
 
 /* Sidebar */
+/* This styling applies to the vh-100 and bg-white classes in your base.html */
 .sidebar {
   background-color: #fff;
   border-right: 1px solid #ddd;
@@ -63,6 +68,7 @@ body {
 /* Cards and Posts */
 .card {
   border: none;
+  /* Lifted shadow for cards */
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
@@ -78,6 +84,7 @@ body {
 /* Buttons */
 .btn-outline-primary:hover,
 .btn-outline-danger:hover {
+  /* Ensures outline buttons have white text on hover */
   color: #fff;
 }
 
@@ -87,7 +94,7 @@ footer {
   color: #666;
 }
 
-/* Responsive Sidebar */
+/* Responsive Sidebar - Hides the sidebar on mobile */
 @media (max-width: 768px) {
   .sidebar {
     display: none;
