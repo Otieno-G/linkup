@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv # Import to load local .env file
-import dj_database_url # Import for production PostgreSQL configuration
+from dotenv import load_dotenv 
+import dj_database_url 
 
 # Load environment variables from .env file (if it exists)
 load_dotenv() 
@@ -41,7 +41,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # IMPORTANT: WhiteNoise must be second, right after SecurityMiddleware
     'django.middleware.security.SecurityMiddleware',
+    # ADDED: Middleware to handle serving static files in production
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -113,12 +116,20 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# -----------------
+# 🎨 STATIC & MEDIA FILES CONFIGURATION
+# -----------------
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
+
+# Static Root: Location where Django collects all static files for production
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Static Files Dirs: Locations where Django looks for static files *during development*
+# We remove the problematic 'profiles/static' line to clear the warning.
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
-    BASE_DIR / 'profiles' / 'static',
 ]
 
 # Media files (User Uploads - required for profile pictures and post images)
