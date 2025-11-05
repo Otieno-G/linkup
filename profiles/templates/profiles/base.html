@@ -2,127 +2,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}LinkUp{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <title>{% block title %}LinkUp{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
-    {# ✅ FIX APPLIED: Add the favicon link #}
-    <link rel="icon" href="{% static 'images/favicon.ico' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {# ✅ FIX APPLIED: Add the favicon link #}
+    <link rel="icon" href="{% static 'images/favicon.ico' %}">
 
-    {% block head %}{% endblock %}
+    {% block head %}{% endblock %}
 </head>
 <body class="bg-light">
 
-    {# --- NAVBAR --- #}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-        <div class="container-fluid">
-            {# FIX APPLIED: Check for both is_authenticated AND if the username is available before linking to profile #}
-            <a class="navbar-brand" href="{% if request.user.is_authenticated and request.user.username %} 
-                {% url 'profiles:profile_detail' request.user.username %} 
-            {% else %}
-                {% url 'profiles:home' %}
-            {% endif %}">
-                LinkUp
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'profiles:search_users' %}"><i class="fas fa-search"></i> Search</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'profiles:explore_posts' %}"><i class="fas fa-compass"></i> Explore</a></li>
-                    {% if request.user.is_authenticated %}
-                        {# 🛠️ FIX APPLIED: Pass username to post_list URL #}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'profiles:post_list' request.user.username %}"><i class="fas fa-stream"></i> Feed</a></li> 
-                        <li class="nav-item"><a class="nav-link" href="{% url 'profiles:create_post' %}"><i class="fas fa-plus-circle"></i> New Post</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'profiles:edit_profile' %}"><i class="fas fa-user-edit"></i> Edit Profile</a></li>
-                        
-                        {# ✅ LOGOUT FIX APPLIED: Convert navbar link to POST form #}
-                        <li class="nav-item">
-                            <form method="post" action="{% url 'logout' %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="nav-link btn btn-link text-white text-decoration-none py-2 px-0 ps-3">
-                                    <i class="fas fa-sign-out-alt"></i> Logout
-                                </button>
-                            </form>
-                        </li>
-                        
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'profiles:signup' %}"><i class="fas fa-user-plus"></i> Sign Up</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {# --- NAVBAR --- #}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            {# FIX APPLIED: Check for both is_authenticated AND if the username is available before linking to profile #}
+            <a class="navbar-brand" href="{% if request.user.is_authenticated and request.user.username %} 
+                {% url 'profiles:profile_detail' request.user.username %} 
+            {% else %}
+                {% url 'profiles:home' %}
+            {% endif %}">
+                LinkUp
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'profiles:search_users' %}"><i class="fas fa-search"></i> Search</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'profiles:explore_posts' %}"><i class="fas fa-compass"></i> Explore</a></li>
+                    {% if request.user.is_authenticated %}
+                        {# 🛠️ FIX APPLIED: Pass username to post_list URL #}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'profiles:post_list' request.user.username %}"><i class="fas fa-stream"></i> Feed</a></li> 
+                        <li class="nav-item"><a class="nav-link" href="{% url 'profiles:create_post' %}"><i class="fas fa-plus-circle"></i> New Post</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'profiles:edit_profile' %}"><i class="fas fa-user-edit"></i> Edit Profile</a></li>
+                        
+                        {# ✅ LOGOUT FIX APPLIED: Convert navbar link to POST form #}
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-link text-white text-decoration-none py-2 px-0 ps-3">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                        
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'profiles:signup' %}"><i class="fas fa-user-plus"></i> Sign Up</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-    {# --- MAIN CONTENT AREA (Sidebar and Main) --- #}
-    <div class="container-fluid">
-        <div class="row">
-            
-            {# 1. SIDEBAR COLUMN (Fixed and Hidden on Mobile) #}
-            <div class="col-md-3 col-lg-2 bg-white border-end p-3 d-none d-md-block" style="min-height: 100vh; position: sticky; top: 0; overflow-y: auto;">
-                <h5 class="mb-4 text-primary"><i class="fas fa-bars"></i> Navigation</h5>
-                <ul class="nav flex-column">
-                    {# Recommended: Use the same safety check for the sidebar profile link #}
-                    {% if request.user.is_authenticated and request.user.username %}
-                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:profile_detail' request.user.username %}"><i class="fas fa-user me-2"></i> My Profile</a></li>
-                        
-                        {# 🛠️ FIX APPLIED: Pass username to post_list URL #}
-                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:post_list' request.user.username %}"><i class="fas fa-stream me-2"></i> My Feed</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:explore_posts' %}"><i class="fas fa-compass me-2"></i> Explore</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:search_users' %}"><i class="fas fa-search me-2"></i> Search Users</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:create_post' %}"><i class="fas fa-plus-circle me-2"></i> New Post</a></li>
-                        
-                        {# ✅ LOGOUT FIX APPLIED: Add logout to sidebar as a form (Optional but good practice) #}
-                        <li class="nav-item">
-                            <form method="post" action="{% url 'logout' %}" class="d-inline w-100">
-                                {% csrf_token %}
-                                <button type="submit" class="nav-link btn btn-link text-dark text-decoration-none ps-3 w-100 text-start">
-                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
-                                </button>
-                            </form>
-                        </li>
-                        
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'login' %}"><i class="fas fa-sign-in-alt me-2"></i> Login</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:signup' %}"><i class="fas fa-user-plus me-2"></i> Sign Up</a></li>
-                    {% endif %}
-                </ul>
-            </div>
+    {# --- MAIN CONTENT AREA (Sidebar and Main) --- #}
+    <div class="container-fluid">
+        <div class="row">
+            
+            {# 1. SIDEBAR COLUMN (Fixed and Hidden on Mobile) #}
+            <div class="col-md-3 col-lg-2 bg-white border-end p-3 d-none d-md-block" style="min-height: 100vh; position: sticky; top: 0; overflow-y: auto;">
+                <h5 class="mb-4 text-primary"><i class="fas fa-bars"></i> Navigation</h5>
+                <ul class="nav flex-column">
+                    {# Recommended: Use the same safety check for the sidebar profile link #}
+                    {% if request.user.is_authenticated and request.user.username %}
+                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:profile_detail' request.user.username %}"><i class="fas fa-user me-2"></i> My Profile</a></li>
+                        
+                        {# 🛠️ FIX APPLIED: Pass username to post_list URL #}
+                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:post_list' request.user.username %}"><i class="fas fa-stream me-2"></i> My Feed</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:explore_posts' %}"><i class="fas fa-compass me-2"></i> Explore</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:search_users' %}"><i class="fas fa-search me-2"></i> Search Users</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:create_post' %}"><i class="fas fa-plus-circle me-2"></i> New Post</a></li>
+                        
+                        {# ✅ LOGOUT FIX APPLIED: Add logout to sidebar as a form (Optional but good practice) #}
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'logout' %}" class="d-inline w-100">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-link text-dark text-decoration-none ps-3 w-100 text-start">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                        
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'login' %}"><i class="fas fa-sign-in-alt me-2"></i> Login</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'profiles:signup' %}"><i class="fas fa-user-plus me-2"></i> Sign Up</a></li>
+                    {% endif %}
+                </ul>
+            </div>
 
-            {# 2. MAIN CONTENT COLUMN #}
-            <main class="col-md-9 col-lg-10 p-4">
-                {# Flashing success/error messages should go here #}
-                {% if messages %}
-                    <div class="messages mb-4">
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+            {# 2. MAIN CONTENT COLUMN #}
+            <main class="col-md-9 col-lg-10 p-4">
+                {# Flashing success/error messages should go here #}
+                {% if messages %}
+                    <div class="messages mb-4">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
-                {% block content %}
-                <div class="alert alert-info text-center">
-                    <i class="fas fa-info-circle"></i> Welcome to LinkUp! Your page content will appear here.
-                </div>
-                {% endblock %}
-            </main>
-        </div>
-    </div>
+                {% block content %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i> Welcome to LinkUp! Your page content will appear here.
+                </div>
+                {% endblock %}
+            </main>
+        </div>
+    </div>
 
-    {# --- FOOTER --- #}
-    <footer class="text-center mt-5 mb-3 text-muted">
-        <small>&copy; 2025 LinkUp by Genesis</small>
-    </footer>
+    {# --- FOOTER --- #}
+    <footer class="text-center mt-5 mb-3 text-muted">
+        <small>&copy; 2025 LinkUp by Genesis</small>
+    </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
