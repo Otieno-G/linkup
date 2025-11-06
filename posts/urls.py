@@ -1,23 +1,29 @@
-# posts/urls.py
+# linkup/urls.py
 
-from django.urls import path
-from . import views
-
-app_name = 'posts'
+from django.contrib import admin
+from django.urls import path, include
+# 👇 1. IMPORT NECESSARY SETTINGS MODULES 👇
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    # Main post feed/list (e.g., /posts/)
-    path('', views.post_list, name='post_list'), 
+    # Admin URL
+    path('admin/', admin.site.urls),
     
-    # Create a new post (e.g., /posts/create/)
-    path('create/', views.create_post, name='create_post'),
+    # User Authentication URLs (Login, Logout, Password Reset, etc.)
+    # Note: These typically map to Django's built-in views under /accounts/
+    path('accounts/', include('django.contrib.auth.urls')),
     
-    # View a single post (e.g., /posts/123/)
-    path('<int:post_pk>/', views.post_detail, name='post_detail'),
-
-    # Handle Liking/Unliking (This is the feature we implemented)
-    path('<int:post_pk>/like/', views.like_post, name='like_post'), 
+    # Profiles and General App URLs (Home, Explore, Search, etc.)
+    path('', include('profiles.urls')), 
     
-    # Handle Commenting
-    path('<int:post_pk>/comment/', views.add_comment, name='add_comment'),
+    # Posts URLs
+    path('posts/', include('posts.urls')),
 ]
+
+# 👇 2. MEDIA FILE FIX FOR PRODUCTION 👇
+# This block tells Django to serve user-uploaded media files (MEDIA_URL) 
+# from the directory where they are collected (MEDIA_ROOT) when DEBUG=False.
+# This resolves the 404 error for the default avatar image.
+if not settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
