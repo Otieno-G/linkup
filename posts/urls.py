@@ -2,9 +2,8 @@
 
 from django.contrib import admin
 from django.urls import path, include
-# 👇 REQUIRED IMPORTS 👇
-from django.conf import settings
-from django.conf.urls.static import static 
+# REMOVED: from django.conf import settings
+# REMOVED: from django.conf.urls.static import static 
 
 urlpatterns = [
     # Admin URL
@@ -20,6 +19,4 @@ urlpatterns = [
     path('posts/', include('posts.urls')),
 ]
 
-# 👇 SIMPLIFIED MEDIA FIX 👇
-# This is a safe way to handle default media files in small production environments.
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# REMOVED: urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
