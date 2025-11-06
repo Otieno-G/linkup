@@ -1,13 +1,15 @@
 import os
-from pathlib import Path
+# REMOVED: from pathlib import Path (Not needed for the os.path approach)
 from dotenv import load_dotenv 
 import dj_database_url 
 
 # Load environment variables from .env file (if it exists)
 load_dotenv() 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# 👇 NEW, STABLE BASE_DIR DEFINITION 👇
+# Use os.path for highly stable path definitions across different OS/environments.
+# This points to the project root directory (the parent of the 'linkup' config folder).
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
 # Read SECRET_KEY from environment variable (secure practice)
@@ -58,7 +60,8 @@ ROOT_URLCONF = 'linkup.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        # 👇 PATHS UPDATED TO os.path.join 👇
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -123,20 +126,21 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 
-# ADDED: Forces WhiteNoise to handle static files for caching and compression
+# CRITICAL FIX: Forces WhiteNoise to handle static files for caching and compression
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# 👇 PATHS UPDATED TO os.path.join 👇
 # Static Root: Location where Django collects all static files for production
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Static Files Dirs: Locations where Django looks for static files *during development*
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    os.path.join(BASE_DIR, 'static'),
 ]
 
 # Media files (User Uploads - required for profile pictures and post images)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
