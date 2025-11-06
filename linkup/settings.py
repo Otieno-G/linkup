@@ -123,11 +123,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 
+# ADDED: Forces WhiteNoise to handle static files for caching and compression
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Static Root: Location where Django collects all static files for production
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Static Files Dirs: Locations where Django looks for static files *during development*
-# We remove the problematic 'profiles/static' line to clear the warning.
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
