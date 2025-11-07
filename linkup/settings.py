@@ -1,31 +1,25 @@
 import os
-# REMOVED: from pathlib import Path (Not needed for the os.path approach)
-from dotenv import load_dotenv 
-import dj_database_url 
+from dotenv import load_dotenv
+import dj_database_url
 
 # Load environment variables from .env file (if it exists)
-load_dotenv() 
+load_dotenv()
 
-# 👇 NEW, STABLE BASE_DIR DEFINITION 👇
-# Use os.path for highly stable path definitions across different OS/environments.
-# This points to the project root directory (the parent of the 'linkup' config folder).
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Quick-start development settings - unsuitable for production
-# Read SECRET_KEY from environment variable (secure practice)
+# SECURITY
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-h^9&#m^&n&y3g5-m^mxa6o87#v+&b1)=-9g+*o)2$t-zq^jo9h')
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# Read DEBUG from environment, default to False for production safety
-DEBUG = os.getenv('DEBUG', 'False') == 'True' 
-
-# Add production hosts (Render URL, etc.) here
+# ✅ FIXED: Add your actual Render domain
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-if not DEBUG and os.getenv('ALLOWED_HOSTS'):
-    ALLOWED_HOSTS.extend(os.getenv('ALLOWED_HOSTS').split(','))
+if not DEBUG:
+    ALLOWED_HOSTS.append('linkup-app-t33o.onrender.com')  # ← your live domain
 
+# Optional: support HTTPS behind Render proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Application definition
+# APPLICATIONS
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -33,20 +27,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    # Third-party apps
     'widget_tweaks',
-
-    # Your apps (Ensure profiles uses the AppConfig path to register signals!)
-    'profiles.apps.ProfilesConfig', 
-    'posts', 
+    'profiles.apps.ProfilesConfig',
+    'posts',
 ]
 
 MIDDLEWARE = [
-    # IMPORTANT: WhiteNoise must be second, right after SecurityMiddleware
     'django.middleware.security.SecurityMiddleware',
-    # ADDED: Middleware to handle serving static files in production
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -60,7 +48,6 @@ ROOT_URLCONF = 'linkup.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # 👇 PATHS UPDATED TO os.path.join 👇
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -76,18 +63,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'linkup.wsgi.application'
 
-# -----------------
-# 🎯 DATABASE CONFIGURATION (Production vs. Local)
-# -----------------
-
-# 1. Production (PostgreSQL) Configuration: Use DATABASE_URL environment variable
+# DATABASE CONFIGURATION
 if os.getenv('DATABASE_URL'):
-    # Use dj_database_url to parse the PostgreSQL URL for production
     DATABASES = {
         'default': dj_database_url.config(default=os.getenv('DATABASE_URL'), conn_max_age=600)
     }
-
-# 2. Local Development (MySQL) Configuration: Fallback if DATABASE_URL is NOT set
 else:
     DATABASES = {
         'default': {
@@ -98,14 +78,12 @@ else:
             'HOST': os.getenv('MYSQL_HOST', '127.0.0.1'),
             'PORT': os.getenv('MYSQL_PORT', '3306'),
             'OPTIONS': {
-                # Recommended setting for MySQL compatibility
                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             }
         }
     }
 
-
-# Password validation
+# PASSWORD VALIDATION
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -113,38 +91,38 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
+# INTERNATIONALIZATION
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# -----------------
-# 🎨 STATIC & MEDIA FILES CONFIGURATION
-# -----------------
-
-# Static files (CSS, JavaScript, Images)
+# STATIC & MEDIA FILES
 STATIC_URL = '/static/'
-
-# CRITICAL FIX: Forces WhiteNoise to handle static files for caching and compression
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# 👇 PATHS UPDATED TO os.path.join 👇
-# Static Root: Location where Django collects all static files for production
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# Static Files Dirs: Locations where Django looks for static files *during development*
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
-
-# Media files (User Uploads - required for profile pictures and post images)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Default primary key field type
+# DEFAULT PRIMARY KEY FIELD
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Authentication redirects (used with django.contrib.auth.urls)
+# AUTH REDIRECTS
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# ✅ LOGGING FOR DEBUGGING
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG' if DEBUG else 'ERROR',
+    },
+}
