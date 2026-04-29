@@ -1,0 +1,102 @@
+/* Brand Colors */
+:root {
+  --linkup-blue: #007bff;
+  --linkup-gold: #ffc107;
+  --linkup-gray: #f8f9fa;
+  --linkup-dark: #343a40;
+}
+
+/* Body and Typography */
+body {
+  /* Using Segoe UI as a clean, modern font */
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--linkup-gray);
+  color: #333;
+}
+
+/* Navbar */
+.navbar {
+  /* Subtle shadow for depth */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.4rem;
+}
+
+.navbar-nav .nav-link {
+  /* Ensuring links are white against the primary blue background */
+  color: #fff !important; 
+  margin-left: 10px;
+  transition: background 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  /* Hover effect for navigation links */
+  background-color: rgba(255,255,255,0.2);
+  border-radius: 5px;
+}
+
+/* Sidebar */
+/* This styling applies to the vh-100 and bg-white classes in your base.html */
+.sidebar {
+  background-color: #fff;
+  border-right: 1px solid #ddd;
+  height: 100vh;
+  padding-top: 1rem;
+}
+
+.sidebar h5 {
+  font-weight: bold;
+  color: var(--linkup-dark);
+}
+
+.sidebar .nav-link {
+  color: var(--linkup-dark);
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+  background-color: var(--linkup-blue);
+  color: #fff;
+}
+
+/* Cards and Posts */
+.card {
+  border: none;
+  /* Lifted shadow for cards */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.card-body {
+  padding: 1rem 1.25rem;
+}
+
+.card-text {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Buttons */
+.btn-outline-primary:hover,
+.btn-outline-danger:hover {
+  /* Ensures outline buttons have white text on hover */
+  color: #fff;
+}
+
+/* Footer */
+footer {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Responsive Sidebar - Hides the sidebar on mobile */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}

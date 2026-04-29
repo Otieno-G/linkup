@@ -5,59 +5,88 @@
 
 {% block content %}
 <div class="container mt-5">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="fas fa-user-edit"></i> Edit Your Profile</h4>
-        </div>
-        <div class="card-body">
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-
-                {% comment %} Display Non-field errors {% endcomment %}
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-                {% endif %}
-
-                <div class="mb-3">
-                    <label class="form-label">Profile Picture</label><br>
-                    {% if request.user.userprofile.image %}
-                        <img src="{{ request.user.userprofile.image.url }}" class="rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;">
-                    {% endif %}
-                    {{ form.image }}
-                    {% for error in form.image.errors %}<small class="text-danger d-block">{{ error }}</small>{% endfor %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-user-edit"></i> Edit Your Profile</h4>
                 </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
 
-                <div class="mb-3">
-                    <label class="form-label">Job Title</label>
-                    {% comment %} --- NEW FIELD ADDED --- {% endcomment %}
-                    {{ form.job_title|add_class:"form-control"|attr:"placeholder:e.g., Software Engineer, UX Designer" }}
-                    {% for error in form.job_title.errors %}<small class="text-danger d-block">{{ error }}</small>{% endfor %}
-                </div>
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
 
-                <div class="mb-3">
-                    <label class="form-label">Location</label>
-                    {{ form.location|add_class:"form-control"|attr:"placeholder:City, Country" }}
-                    {% for error in form.location.errors %}<small class="text-danger d-block">{{ error }}</small>{% endfor %}
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Skills (Comma Separated)</label>
-                    {% comment %} --- NEW FIELD ADDED --- {% endcomment %}
-                    {{ form.skills|add_class:"form-control"|attr:"placeholder:e.g., Python, JavaScript, Django" }}
-                    {% for error in form.skills.errors %}<small class="text-danger d-block">{{ error }}</small>{% endfor %}
-                </div>
+                        {# Profile Picture Section #}
+                        <div class="mb-4 text-center">
+                            <label class="form-label d-block text-start fw-bold">Profile Picture</label>
+                            {% if request.user.userprofile.image %}
+                                <div class="mb-3">
+                                    <img src="{{ request.user.userprofile.image.url }}" 
+                                         class="rounded-circle border shadow-sm" 
+                                         style="width: 120px; height: 120px; object-fit: cover;">
+                                    <p class="small text-muted mt-1">Current Image</p>
+                                </div>
+                            {% endif %}
+                            
+                            {# Adding form-control makes the file upload button look professional #}
+                            {{ form.image|add_class:"form-control" }}
+                            {% for error in form.image.errors %}
+                                <small class="text-danger d-block text-start">{{ error }}</small>
+                            {% endfor %}
+                        </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Bio</label>
-                    {{ form.bio|add_class:"form-control"|attr:"rows:4" }}
-                    {% for error in form.bio.errors %}<small class="text-danger d-block">{{ error }}</small>{% endfor %}
-                </div>
+                        <hr class="my-4">
 
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
-                <a href="{% url 'profiles:profile_detail' request.user.username %}" class="btn btn-secondary ms-2">Cancel</a>
-            </form>
+                        {# Job Title #}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Job Title</label>
+                            {{ form.job_title|add_class:"form-control"|attr:"placeholder:e.g., Software Engineer, UX Designer" }}
+                            {% for error in form.job_title.errors %}
+                                <small class="text-danger d-block">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+
+                        {# Location #}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Location</label>
+                            {{ form.location|add_class:"form-control"|attr:"placeholder:City, Country" }}
+                            {% for error in form.location.errors %}
+                                <small class="text-danger d-block">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        
+                        {# Skills #}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Skills (Comma Separated)</label>
+                            {{ form.skills|add_class:"form-control"|attr:"placeholder:e.g., Python, JavaScript, Django" }}
+                            {% for error in form.skills.errors %}
+                                <small class="text-danger d-block">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+
+                        {# Bio #}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Bio</label>
+                            {{ form.bio|add_class:"form-control"|attr:"rows:4"|attr:"placeholder:Tell the community about yourself..." }}
+                            {% for error in form.bio.errors %}
+                                <small class="text-danger d-block">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                            <button type="submit" class="btn btn-primary px-5">
+                                <i class="fas fa-save me-2"></i> Save Changes
+                            </button>
+                            <a href="{% url 'profiles:profile_detail' request.user.username %}" class="btn btn-outline-secondary px-4">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

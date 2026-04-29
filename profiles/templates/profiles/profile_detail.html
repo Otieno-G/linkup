@@ -1,266 +1,106 @@
 {% extends 'profiles/base.html' %}
-{% load widget_tweaks %}
 {% load static %}
-{% load profiles_extras %} 
 
-{% block title %}{{ profile.user.username }} | LinkUp{% endblock %}
+{% block title %}{{ profile.user.username }}'s Profile | LinkUp{% endblock %}
 
 {% block content %}
-
-{# ---------------------------------------------------- #}
-{# 1. PROFILE HEADER SECTION (blue background - Full Width) #}
-{# ---------------------------------------------------- #}
-<div class="container-fluid bg-primary text-white p-4 mb-4">
-    <div class="container">
-        <div class="d-flex align-items-center">
-            {# Profile Image #}
-            <img src="{% if profile.image %}{{ profile.image.url }}{% else %}{% static 'profiles/images/default_profile.png' %}{% endif %}" alt="{{ profile.user.username }}'s avatar"
-                 class="rounded-circle border border-5 border-white me-3"
-                 style="width: 100px; height: 100px; object-fit: cover;">
-            
-            <div>
-                <h2 class="mb-0">{{ profile.user.username }}</h2>
-                <p class="mb-0 fs-5"><i class="fas fa-briefcase me-2"></i>{{ profile.job_title|default:"Job Title not set" }}</p>
-                <p class="mb-0 text-white-50"><i class="fas fa-map-marker-alt me-2"></i>{{ profile.location|default:"Location not set" }}</p>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center p-4">
                 
-                <div class="mt-2">
-                    {% if request.user == profile.user %}
-                        {# Current User's Profile #}
-                        <a href="{% url 'profiles:edit_profile' %}" class="btn btn-sm btn-light shadow-sm">
-                            <i class="fas fa-user-edit"></i> Edit Profile
-                        </a>
-                    {% elif request.user.is_authenticated and request.user.userprofile != profile %}
-                        {# Other User's Profile: Follow/Unfollow Logic #}
-                        <form method="POST" action="{% url 'profiles:follow_user' profile.user.username %}" class="d-inline">
-                            {% csrf_token %}
-                            
-                            {% if following_profile %}
-                                <button type="submit" class="btn btn-sm btn-warning shadow-sm">
-                                    <i class="fas fa-user-times"></i> Unfollow
+                {# --- AVATAR SECTION --- #}
+               <div class="mb-3">
+    {% if profile.image and profile.image != "" %}
+        {# Use the image from your database #}
+        <img src="{{ profile.image }}" 
+             class="rounded-circle border shadow-sm" 
+             style="width: 150px; height: 150px; object-fit: cover;" 
+             alt="{{ profile.user.username }}">
+    {% else %}
+        {# Use a GUARANTEED external placeholder (No static files needed) #}
+        <img src="https://ui-avatars.com/api/?name={{ profile.user.username }}&background=random&size=150" 
+             class="rounded-circle border shadow-sm" 
+             style="width: 150px; height: 150px; object-fit: cover;" 
+             alt="Default Avatar">
+    {% endif %}
+</div>
+                
+                <h3 class="fw-bold">{{ profile.user.username }}</h3>
+                <p class="text-muted"><i class="fas fa-briefcase me-1"></i> {{ profile.job_title|default:"Professional" }}</p>
+                
+                <div class="d-flex justify-content-around my-3 border-top border-bottom py-2">
+                    <div>
+                        <div class="fw-bold">{{ posts.paginator.count|default:posts.count }}</div>
+                        <small class="text-muted">Posts</small>
+                    </div>
+                    <div>
+                        <div class="fw-bold">{{ total_likes_received|default:0 }}</div>
+                        <small class="text-muted">Likes</small>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    {% if user.is_authenticated %}
+                        {% if user == profile.user %}
+                            <a href="{% url 'profiles:edit_profile' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-edit me-1"></i> Edit Profile
+                            </a>
+                        {% else %}
+                            <form method="POST" action="{% url 'profiles:follow_user' profile.user.username %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn {% if following_profile %}btn-secondary{% else %}btn-primary{% endif %} w-100">
+                                    {% if following_profile %}Unfollow{% else %}Follow{% endif %}
                                 </button>
-                            {% else %}
-                                <button type="submit" class="btn btn-sm btn-light shadow-sm">
-                                    <i class="fas fa-user-plus"></i> Follow
-                                </button>
-                            {% endif %}
-                        </form>
+                            </form>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-{# ---------------------------------------------------- #}
-{# 2. MAIN CONTENT WRAPPER (Centered Column) #}
-{# ---------------------------------------------------- #}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-lg-10 col-md-12">
+        <div class="col-md-8">
+            <h4 class="mb-4">Recent Activity</h4>
             
-            {# 2a. PROFILE STRENGTH METER #}
-            {% if request.user == profile.user %}
-                {% with strength=profile|profile_strength %}
-                <div class="card shadow-sm mb-4 border-primary border-3 mt-n5"> {# Use MT-N5 for overlap #}
-                    <div class="card-body py-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <p class="mb-0 fw-bold text-dark">Profile Strength: **{{ strength }}%** Complete</p>
-                            
-                            {% if strength < 100 %}
-                                <a href="{% url 'profiles:edit_profile' %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-edit me-1"></i> Complete Profile
-                                </a>
-                            {% else %}
-                                <span class="badge bg-success py-2 px-3"><i class="fas fa-check-circle me-1"></i> Excellent!</span>
-                            {% endif %}
-                        </div>
-                        
-                        {# Bootstrap Progress Bar #}
-                        <div class="progress mt-2" style="height: 10px;">
-                            <div class="progress-bar bg-primary"
-                                 role="progressbar"
-                                 style="width: {{ strength }}%;"
-                                 aria-valuenow="{{ strength }}"
-                                 aria-valuemin="0"
-                                 aria-valuemax="100">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endwith %}
-            {% endif %}
-            
-            {# 2b. ABOUT SECTION #}
-            <div class="bg-white p-4 rounded shadow-sm mb-4">
-                <h4 class="text-primary mb-3"><i class="fas fa-info-circle"></i> About</h4>
-                <p>{{ profile.bio|default:"No bio available." }}</p>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong>Education:</strong> {{ profile.education|default:"Not listed" }}</p>
-                        <p class="mb-1"><strong>Contact:</strong> {{ profile.contact|default:"Not shared" }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong>Website:</strong>
-                            {% if profile.website %}
-                                <a href="{{ profile.website }}" target="_blank" class="text-decoration-none">
-                                    {{ profile.website }} <i class="fas fa-external-link-alt small"></i>
-                                </a>
-                            {% else %}
-                                Not provided
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {# 2c. SKILLS & ENDORSEMENTS SECTION #}
-            <div class="bg-white p-4 rounded shadow-sm mb-4">
-                <h4 class="text-primary mb-3"><i class="fas fa-tools"></i> Skills & Endorsements</h4>
-                
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    {% if profile.skills %}
-                        {% for skill in profile.skills|split:"," %}
-                            <span class="badge bg-secondary py-2 px-3 fs-6">{{ skill|trim }}</span>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted">No skills listed.</p>
-                    {% endif %}
-                </div>
-
-                {# Endorsement Submission Form (Styling simplified) #}
-                {% if request.user.is_authenticated and request.user.userprofile != profile %}
-                    <div class="mb-3 p-3 border rounded">
-                        <h6 class="mb-2">Endorse a Skill:</h6>
-                        <form method="POST" action="{% url 'profiles:add_endorsement' profile.user.username %}" class="d-flex">
-                            {% csrf_token %}
-                            {# Assuming endorsement_form has one field, 'skill' #}
-                            {{ endorsement_form.skill|add_class:"form-control form-control-sm me-2"|attr:"placeholder:e.g. Django, Python" }}
-                            <button type="submit" class="btn btn-sm btn-success flex-shrink-0">Endorse</button>
-                        </form>
-                    </div>
-                {% endif %}
-
-                {# Display Endorsements #}
-                {% if endorsements %}
-                    <h6 class="mt-4 text-muted border-top pt-3">Recent Endorsements:</h6>
-                    <div class="list-group list-group-flush">
-                        {% for endorsement in endorsements|slice:":5" %} {# Show only top 5 #}
-                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                <small>
-                                    <strong>{{ endorsement.endorser.user.username }}</strong> endorsed
-                                    <em class="fw-bold text-success">{{ endorsement.skill }}</em>
-                                </small>
-                                <small class="text-muted">{{ endorsement.created_at|date:"M d, Y" }}</small>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-muted mt-4">No endorsements yet.</p>
-                {% endif %}
-            </div>
-
-            {# 2d. STATS BAR #}
-            <div class="bg-white p-3 border-bottom shadow-sm rounded mb-4">
-                <div class="row text-center">
-                    <div class="col border-end">
-                        <strong>{{ posts.paginator.count }}</strong><br>
-                        <small>Posts</small>
-                    </div>
-                    <div class="col border-end">
-                        {# Using 'total_likes_received' attribute from view context #}
-                        <strong>{{ total_likes_received|default:"0" }}</strong><br>
-                        <small>Likes Received</small>
-                    </div>
-                    <div class="col border-end">
-                        <strong>{{ profile.following.count }}</strong><br>
-                        <small>Following</small>
-                    </div>
-                    <div class="col">
-                        <strong>{{ profile.followers.count }}</strong><br>
-                        <small>Followers</small>
-                    </div>
-                </div>
-            </div>
-
-            {# 2e. RECENT POSTS #}
-            <h4 class="mb-3 text-primary"><i class="fas fa-stream"></i> Recent Posts</h4>
-            
-            {# Displaying the posts #}
             {% for post in posts %}
                 <div class="card mb-3 shadow-sm border-0">
                     <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">Posted {{ post.created_at|timesince }} ago</small>
+                            <a href="{% url 'profiles:post_detail' post.id %}" class="btn btn-sm btn-link text-decoration-none">View Post</a>
+                        </div>
+                        
+                        <p class="card-text">{{ post.content|linebreaksbr }}</p>
+                        
                         {% if post.image %}
-                            <img src="{{ post.image.url }}" class="img-fluid rounded mb-2" alt="Post Image" style="max-height: 300px; object-fit: cover;">
+                            <img src="{{ post.image }}" class="img-fluid rounded mb-3 w-100" style="max-height: 400px; object-fit: cover;">
                         {% endif %}
-                        <p>{{ post.content|linebreaksbr }}</p>
-                        <hr>
-                        <small class="text-muted d-flex justify-content-between">
-                            <span><i class="fas fa-clock"></i> {{ post.created_at|date:"M d, Y H:i" }}</span>
-                            <span>
-                                <span class="me-3">
-                                    {# INTERACTIVE LIKING LOGIC START #}
-                                    {% if request.user.is_authenticated %}
-                                    <form method="POST" action="{% url 'posts:like_post' post_pk=post.pk %}" class="d-inline">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent" aria-label="Like Post">
-                                            {% if post.is_liked %}
-                                                {# Liked: Solid Red Heart #}
-                                                <i class="fas fa-heart text-danger"></i>
-                                            {% else %}
-                                                {# Not Liked: Outline Heart #}
-                                                <i class="far fa-heart text-muted"></i>
-                                            {% endif %}
-                                        </button>
-                                    </form>
-                                    {% else %}
-                                        {# Display read-only heart for unauthenticated users #}
-                                        <i class="far fa-heart text-muted"></i>
-                                    {% endif %}
-                                    
-                                    <span class="fw-bold">{{ post.likes.count }}</span> likes
-                                    {# INTERACTIVE LIKING LOGIC END #}
-                                </span>
-                                <span><i class="fas fa-comments"></i> {{ post.comments.count }} comments</span>
-                            </span>
-                        </small>
+                        
+                        <div class="pt-2 border-top">
+                            <span class="me-3 text-danger"><i class="fas fa-heart"></i> {{ post.likes.count }}</span>
+                            <span class="text-secondary"><i class="fas fa-comment"></i> {{ post.comments.count }}</span>
+                        </div>
                     </div>
                 </div>
             {% empty %}
-                <div class="alert alert-info text-center">
-                    <i class="fas fa-info-circle"></i> No posts yet.
+                <div class="text-center py-5 bg-white rounded shadow-sm">
+                    <p class="text-muted mb-0">No posts shared yet.</p>
                 </div>
             {% endfor %}
 
-            {# Pagination Controls #}
-            <div class="d-flex justify-content-center mt-4">
-                {% if posts.has_other_pages %}
-                    <nav>
-                        <ul class="pagination">
-                            {% if posts.has_previous %}
-                                <li class="page-item"><a class="page-link" href="?page={{ posts.previous_page_number }}">Previous</a></li>
-                            {% else %}
-                                <li class="page-item disabled"><span class="page-link">Previous</span></li>
-                            {% endif %}
-
-                            {% for i in posts.paginator.page_range %}
-                                {% if posts.number == i %}
-                                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                                {% else %}
-                                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if posts.has_next %}
-                                <li class="page-item"><a class="page-link" href="?page={{ posts.next_page_number }}">Next</a></li>
-                            {% else %}
-                                <li class="page-item disabled"><span class="page-link">Next</span></li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                {% endif %}
-            </div>
-            
+            {% if posts.has_other_pages %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if posts.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ posts.previous_page_number }}">&laquo;</a></li>
+                        {% endif %}
+                        <li class="page-item active"><span class="page-link">{{ posts.number }}</span></li>
+                        {% if posts.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ posts.next_page_number }}">&raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
         </div>
     </div>
 </div>

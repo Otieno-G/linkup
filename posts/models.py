@@ -1,5 +1,3 @@
-# posts/models.py
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -8,10 +6,13 @@ from django.utils import timezone
 # Post Model
 # -------------------------------
 class Post(models.Model):
-    # FIX: Changed related_name from 'posts' to 'user_posts'
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_posts')
     content = models.TextField()
-    image = models.ImageField(upload_to='post_images', blank=True, null=True)
+    
+    # Restored 'image' field as a FileField
+    # This bypasses the Pillow requirement while allowing file uploads.
+    image = models.FileField(upload_to='post_images/', blank=True, null=True)
+    
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -31,7 +32,6 @@ class Post(models.Model):
 # -------------------------------
 class Like(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')
-    # FIX: Changed related_name from 'likes' to 'post_likes'
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_likes')
     created_at = models.DateTimeField(default=timezone.now)
 
@@ -41,12 +41,12 @@ class Like(models.Model):
     def __str__(self):
         return f'{self.user.username} likes {self.post}'
 
+
 # -------------------------------
 # Comment Model
 # -------------------------------
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
-    # FIX: Changed related_name from 'comments' to 'post_comments'
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_comments')
     content = models.TextField()
     created_at = models.DateTimeField(default=timezone.now)

@@ -1,42 +1,39 @@
 # profiles/admin.py
 
 from django.contrib import admin
-# Removed the redundant 'from django.contrib import admin' later in the file
-
-from .models import UserProfile, Post, Comment, Like
-
-# -----------------------------------------------------------------
-# Removed the following duplicate registrations:
-# admin.site.register(UserProfile)
-# admin.site.register(Post)
-# admin.site.register(Comment)
-# admin.site.register(Like)
-# -----------------------------------------------------------------
+from .models import UserProfile, Endorsement
+from posts.models import Post, Comment, Like
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    # This registers UserProfile and provides custom admin options
-    list_display = ('user', 'location', 'created_at')
+    # Added 'image' so you can see the profile pic path
+    list_display = ('user', 'location', 'image', 'created_at')
     search_fields = ('user__username', 'location')
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    # Fixed the PostAdmin list_display. Assuming the 'user' field is the author.
-    list_display = ('user', 'content', 'created_at') 
-    # Adjusted search_fields to match the ForeignKey to User (which is 'user' on the Post model)
+    # Added 'image' here so you can verify uploads in the admin list
+    list_display = ('user', 'content_snippet', 'image', 'created_at') 
     search_fields = ('user__username', 'content') 
     list_filter = ('created_at',)
 
+    # Helper to keep the admin list clean if content is long
+    def content_snippet(self, obj):
+        return obj.content[:50]
+
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('author', 'post', 'content', 'created_at')
-    # Adjusted search_fields to use 'author' (which is a ForeignKey to User)
+    # Your model uses 'author', so this is correct
+    list_display = ('author', 'post', 'created_at')
     search_fields = ('author__username', 'content') 
     list_filter = ('created_at',)
 
 @admin.register(Like)
 class LikeAdmin(admin.ModelAdmin):
     list_display = ('user', 'post', 'created_at')
-    # Adjusted search_fields to use 'user' (which is a ForeignKey to User)
     search_fields = ('user__username',) 
     list_filter = ('created_at',)
+
+@admin.register(Endorsement)
+class EndorsementAdmin(admin.ModelAdmin):
+    list_display = ('profile', 'endorser', 'skill', 'created_at')

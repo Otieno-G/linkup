@@ -1,11 +1,8 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import Post, UserProfile, Comment, Endorsement
 
-# -------------------------------
-# Signup Form
-# -------------------------------
+# --- SIGNUP FORM ---
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(max_length=30, required=False)
@@ -13,7 +10,7 @@ class SignupForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
+        fields = ('username', 'email', 'first_name', 'last_name')
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -21,25 +18,27 @@ class SignupForm(UserCreationForm):
             raise forms.ValidationError("This email is already registered.")
         return email
 
-# -------------------------------
-# Post Form
-# -------------------------------
+# --- POST FORM ---
 class PostForm(forms.ModelForm):
     class Meta:
+        # Import inside Meta to prevent circular dependency
+        from posts.models import Post 
         model = Post
-        fields = ['content', 'image']
+        fields = ['content', 'image'] 
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Share something...'}),
+            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': "What's on your mind?"}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
         }
 
-# -------------------------------
-# Profile Edit Form
-# -------------------------------
+# --- PROFILE EDIT FORM ---
 class ProfileForm(forms.ModelForm):
     class Meta:
+        # Import inside Meta to prevent circular dependency
+        from profiles.models import UserProfile
         model = UserProfile
-        fields = ['bio', 'image', 'location', 'skills', 'job_title', 'website', 'contact', 'education']
+        fields = ['image', 'bio', 'location', 'skills', 'job_title', 'website', 'contact', 'education']
         widgets = {
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
             'bio': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Tell us about yourself'}),
             'skills': forms.TextInput(attrs={'placeholder': 'e.g. Python, Django, HTML'}),
             'website': forms.URLInput(attrs={'placeholder': 'https://yourportfolio.com'}),
@@ -47,40 +46,13 @@ class ProfileForm(forms.ModelForm):
             'education': forms.Textarea(attrs={'rows': 2}),
         }
 
-# -------------------------------
-# Comment Form
-# -------------------------------
+# --- COMMENT FORM ---
 class CommentForm(forms.ModelForm):
     class Meta:
+        # Import inside Meta to prevent circular dependency
+        from posts.models import Comment
         model = Comment
         fields = ['content']
         widgets = {
             'content': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Write a comment...'}),
         }
-
-# -------------------------------
-# Endorsement Form
-# -------------------------------
-class EndorsementForm(forms.ModelForm):
-    class Meta:
-        model = Endorsement
-        fields = ['skill']
-        help_texts = {
-            'skill': 'Enter a skill listed on the user’s profile.',
-        }
-        widgets = {
-            'skill': forms.TextInput(attrs={'placeholder': 'e.g. JavaScript'}),
-        }
-
-# -------------------------------
-# Search Form
-# -------------------------------
-class SearchForm(forms.Form):
-    query = forms.CharField(
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Search users by name, bio, or skill...',
-        })
-    )

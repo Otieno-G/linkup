@@ -1,26 +1,30 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.conf import settings
+from django.conf import settings 
 from django.conf.urls.static import static
 
 urlpatterns = [
-    # Django Admin Interface
+    # 1. Django Admin
     path('admin/', admin.site.urls),
     
-    # Core app URLs (This assumes the profiles app handles the root path '')
+    # 2. Profiles (Home/Root) 
+    # This handles the main feed, profile viewing, and editing
     path('', include('profiles.urls')),
     
-    # Standard Django Authentication URLs
+    # 3. Authentication
+    # Provides built-in login/logout logic
     path('accounts/', include('django.contrib.auth.urls')),
 
-    # 🌟 NEW LINE ADDED: Include the URLs for the posts application
-    # This makes URLs like /posts/1/like/ available
+    # 4. Posts
+    # This handles specific post interactions if you have a separate posts/urls.py
     path('posts/', include('posts.urls')), 
 ]
 
-# Serving media and static files during development
+# 5. Static and Media Files (CRITICAL for Laptop Browsing)
+# This allows Django to serve the images you upload from your laptop 
+# while you are in development mode (DEBUG = True)
 if settings.DEBUG:
-    # Handle user-uploaded media files
+    # Serves images from the /media/ folder
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    # Handle collected static files (optional but safe)
+    # Serves CSS/JS from the /static/ folder
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
